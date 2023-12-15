@@ -62,6 +62,7 @@ not_transported <- function(data, A, W, Z, M, Y, family, folds = 1, partial_tmle
     ans <- data.frame(total = thetas$`11` - thetas$`00`,
                       indirect = thetas$`11` - thetas$`10`,
                       direct = thetas$`10` - thetas$`00`,
+                      gcomp_total = mean(vvbar[, "11"] - vvbar[, "00"]),
                       gcomp_indirect = mean(vvbar[, "11"] - vvbar[, "10"]),
                       gcomp_direct = mean(vvbar[, "10"] - vvbar[, "00"]))
     
