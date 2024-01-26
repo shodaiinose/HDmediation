@@ -35,7 +35,7 @@ not_transported_limited <- function(data, A, W, Z, M, Y, cens,
 
         hm <- h_m(hz, gg, ee, aprime, astar)
         
-        # truncate hm to 100 if greater than 100
+        # truncating hm if > 100
         hm <- ifelse(hm > 100, 100, hm)
 
         if (!is.null(cens)) {
