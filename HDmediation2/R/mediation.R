@@ -77,7 +77,8 @@ mediation <- function(data, A, W, Z, M, Y, cens = NULL, S = NULL,
                       learners_ubar = c("glm"),
                       learners_v = c("glm"),
                       learners_vbar = c("glm"),
-                      learners_cens = "glm") {
+                      learners_cens = "glm",
+                      limited = FALSE) {
     checkmate::assertDataFrame(data[, c(A, S, W, Z, M, Y)])
     checkmate::assertNumber(folds, lower = 1, upper = nrow(data) - 1)
 
@@ -88,7 +89,15 @@ mediation <- function(data, A, W, Z, M, Y, cens = NULL, S = NULL,
         return(ans)
     }
 
+    if(limited == FALSE)
+    {
     not_transported(data, A, W, Z, M, Y, cens, family, folds, partial_tmle,
                     bounds, learners_g, learners_e, learners_b,
                     learners_hz, learners_u, learners_ubar, learners_v, learners_vbar, learners_cens)
+    }
+    else{
+        not_transported_limited(data, A, W, Z, M, Y, cens, family, folds, partial_tmle,
+                        bounds, learners_g, learners_e, learners_b,
+                        learners_hz, learners_u, learners_ubar, learners_v, learners_vbar, learners_cens)
+    }
 }
