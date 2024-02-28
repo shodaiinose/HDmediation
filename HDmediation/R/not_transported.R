@@ -46,7 +46,8 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
         ipwy <- ((A == aprime) / gg[, gl("g({aprime}|w)")])*ipcw_ap
         if (partial_tmle) {
             fit <- glm(Y ~ 1, offset = qlogis(bb[, gl("b({aprime},Z,M,W)")]), family = "binomial",
-                       subset = A == aprime, weights = ipwy * hm / mean(ipwy * hm))
+                       subset = A == aprime, weights = ipwy * hm #/ mean(ipwy * hm)
+                       )
             bb[, gl("b({aprime},Z,M,W)")] <- plogis(coef(fit) + qlogis(bb[, gl("b({aprime},Z,M,W)")]))
         }
 
@@ -106,7 +107,7 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
 
     val_list <- list(
         results = ans,
-        eif11 = eif_11, 
-        eif10 = eif_10, 
-        eif00 = eif_00)
+        eif11 = eifs_11, 
+        eif10 = eifs_10, 
+        eif00 = eifs_00)
 }
