@@ -47,7 +47,7 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
         
         if (partial_tmle) {
             fit <- glm(Y ~ 1, offset = qlogis(bb[, gl("b({aprime},Z,M,W)")]), family = "binomial",
-                       subset = A == aprime, weights = ipwy * hm #/ mean(ipwy * hm)
+                       subset = A == aprime, weights = ipwy * hm / mean(ipwy * hm)
                        )
             bb[, gl("b({aprime},Z,M,W)")] <- plogis(coef(fit) + qlogis(bb[, gl("b({aprime},Z,M,W)")]))
         }
