@@ -44,6 +44,8 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
         }
 
         ipwy <- ((A == aprime) / gg[, gl("g({aprime}|w)")])*ipcw_ap
+        
+        ipwy <- ifelse(ipwy > 100, 100, ipwy)
         if (partial_tmle) {
             fit <- glm(Y ~ 1, offset = qlogis(bb[, gl("b({aprime},Z,M,W)")]), family = "binomial",
                        subset = A == aprime, weights = ipwy * hm #/ mean(ipwy * hm)
