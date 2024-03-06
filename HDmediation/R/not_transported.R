@@ -45,8 +45,6 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
 
         ipwy <- ((A == aprime) / gg[, gl("g({aprime}|w)")])*ipcw_ap
         
-        ipwy <- ifelse(ipwy > 100, 100, ipwy)
-        
         if (partial_tmle) {
             fit <- glm(Y ~ 1, offset = qlogis(bb[, gl("b({aprime},Z,M,W)")]), family = "binomial",
                        subset = A == aprime, weights = ipwy * hm #/ mean(ipwy * hm)
@@ -60,16 +58,16 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
         vvbar[, paste(param, collapse = "")] <- vbar(data, npsem, vv, astar, folds, learners_vbar)
 
         # EIF calculation
-        eify <- ipwy * hm / mean(ipwy * hm) * (Y - bb[, gl("b({aprime},Z,M,W)")])
+        eify_weight <- ipwy * hm / mean(ipwy * hm)
+        eify_weight <- ifelse(eify_weight > 100, 100, eify_weight)
+        eify <- eify_weight * (Y - bb[, gl("b({aprime},Z,M,W)")])
         # eify <- ipwy * hm * (Y - bb[, gl("b({aprime},Z,M,W)")])
 
         ipwz <- ((A == aprime) / gg[, gl("g({aprime}|w)")])*ipcw_ap
-        ipwz <- ifelse(ipwz > 100, 100, ipwz)
         eifz <- ipwz / mean(ipwz) * (uu[, 1] - uubar[, 1])
         # eifz <- ipwz  * (uu[, 1] - uubar[, 1])
 
         ipwm <- ((A == astar) / gg[, gl("g({astar}|w)")])*ipcw_as
-        ipwm <- ifelse(ipwm > 100, 100, ipwm)
         eifm <- ipwm / mean(ipwm) * (vv[, 1] - vvbar[, paste(param, collapse = "")])
         # eifm <- ipwm  * (vv[, 1] - vvbar[, paste(param, collapse = "")])
 
