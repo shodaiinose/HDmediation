@@ -60,15 +60,20 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
         # EIF calculation
         eify_weight <- ipwy * hm / mean(ipwy * hm)
         eify_weight <- ifelse(eify_weight > 100, 100, eify_weight)
+        
         eify <- eify_weight * (Y - bb[, gl("b({aprime},Z,M,W)")])
         # eify <- ipwy * hm * (Y - bb[, gl("b({aprime},Z,M,W)")])
-
+        
         ipwz <- ((A == aprime) / gg[, gl("g({aprime}|w)")])*ipcw_ap
-        eifz <- ipwz / mean(ipwz) * (uu[, 1] - uubar[, 1])
+        eifz_weight <- ipwz / mean(ipwz)
+        eifz_weight <- ifelse(eifz_weight > 100, 100, eifz_weight)
+        eifz <- eifz_weight * (uu[, 1] - uubar[, 1])
         # eifz <- ipwz  * (uu[, 1] - uubar[, 1])
-
+        
         ipwm <- ((A == astar) / gg[, gl("g({astar}|w)")])*ipcw_as
-        eifm <- ipwm / mean(ipwm) * (vv[, 1] - vvbar[, paste(param, collapse = "")])
+        eifm_weight <- ipwm / mean(ipwm)
+        eifm_weight <- ifelse(eifm_weight > 100, 100, eifm_weight)
+        eifm <- eifm_weight * (vv[, 1] - vvbar[, paste(param, collapse = "")])
         # eifm <- ipwm  * (vv[, 1] - vvbar[, paste(param, collapse = "")])
 
         eif <- rescale_y(eify + eifz + eifm + vvbar[, paste(param, collapse = "")], bounds$bounds)
