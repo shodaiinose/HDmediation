@@ -1,4 +1,4 @@
-b <- function(data, npsem, family, folds, learners, ...) {
+b <- function(data, npsem, family, folds, learners, tmle = FALSE, ...) {
     b <- matrix(nrow = nrow(data), ncol = 2)
     colnames(b) <- c("b(0,Z,M,W)", "b(1,Z,M,W)")
     for (v in seq_along(folds)) {
@@ -13,12 +13,22 @@ b <- function(data, npsem, family, folds, learners, ...) {
         } else {
             obs <- rep(TRUE, nrow(train))
         }
-
+        
+        if(tmle == FALSE)
+        {
         preds <- crossfit(train[obs, c(npsem$Y, npsem$W, npsem$A, npsem$Z, npsem$M)],
                           list(valid_0, valid_1),
                           npsem$Y,
                           family,
                           learners = learners)
+        }
+        else{
+        preds <- crossfit(train[obs, c(npsem$Y, npsem$W, npsem$A)],
+                              list(valid_0, valid_1),
+                              npsem$Y,
+                              family,
+                              learners = learners) 
+        }
 
         b[folds[[v]]$validation_set, 1] <- preds[[1]]
         b[folds[[v]]$validation_set, 2] <- preds[[2]]
