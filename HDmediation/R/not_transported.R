@@ -9,6 +9,7 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
                             learners_v = "glm",
                             learners_vbar = "glm",
                             learners_cens = "glm") {
+    require(fastDummies)
     npsem <- Npsem$new(A = A, W = W, Z = Z, M = M, Y = Y, cens = cens)
     folds <- make_folds(data, folds)
 
@@ -122,7 +123,7 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
     }
     
     obs <- !is.na(data[["Y"]])
-    
+    outcome <- "Y"
     covar <- W
     trt <- "A"
     trt_factor <- dummy_cols(data, trt, remove_first_dummy = FALSE, remove_selected_columns = TRUE)
@@ -170,7 +171,7 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
         for (target in lvls[2:length(lvls)]) {
             Gs[folded[[i]]$validation_set, target] <- gg[, 2]
             Hs[folded[[i]]$validation_set, target] <-
-                valid_trt_factor[[target]] / g2[folded[[i]]$validation_set, target]
+                valid_trt_factor[[target]] / Gs[folded[[i]]$validation_set, target]
         }
         
         Gs[folded[[i]]$validation_set, lvls[1]] <- 1 - rowSums(Gs, na.rm = T)
@@ -194,6 +195,11 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
             Qeps[folded[[i]]$validation_set, lvl] <- plogis(qlogis(Qs[[lvl]]) + eps*Hs[, lvl]*Cs[, 1])
         }
     }
+    
+    y <- ifelse(is.na(data[[outcome]]), -999, data[[outcome]])
+    psis <- apply(Qeps, 2, mean)
+    eics <- lapply(c("A", lvls), function(lvl) Hs[, lvl] * Cs[, 1] * (y - Qeps[, lvl]) + Qeps[, lvl])
+    names(eics) <- c("A", lvls)
     
     ses <- lapply(c("A", lvls), function(lvl) sqrt(var(eics[[lvl]]) / nrow(data)))
     names(ses) <- c("A", lvls)
