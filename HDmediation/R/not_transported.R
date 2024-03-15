@@ -131,21 +131,21 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
     lvls <- setdiff(names(trt_factor), names(data))
     
     for (i in 1:tmle_folds) {
-        train <- as.data.table(data[folded[[i]]$training_set, ])
-        train_trt_factor <- as.data.table(trt_factor[folded[[i]]$training_set, ])
-        valid <- as.data.table(data[folded[[i]]$validation_set, ])
-        valid_trt_factor <- as.data.table(trt_factor[folded[[i]]$validation_set, ])
+        #train <- as.data.table(data[folded[[i]]$training_set, ])
+        #train_trt_factor <- as.data.table(trt_factor[folded[[i]]$training_set, ])
+        #valid <- as.data.table(data[folded[[i]]$validation_set, ])
+        #valid_trt_factor <- as.data.table(trt_factor[folded[[i]]$validation_set, ])
         
-        valids <- vector("list", length(lvls) + 1)
-        names(valids) <- c("A", lvls)
-        valids[["A"]] <- valid_trt_factor
-        for (lvl in lvls) {
-            other <- setdiff(lvls, lvl)
-            
-            valids[[lvl]] <- data.table::copy(valid_trt_factor)
-            valids[[lvl]][[lvl]] <- 1
-            valids[[lvl]][, (other) := lapply(.SD, function(x) rep(0, length(x))), .SDcols = other]
-        }
+        #valids <- vector("list", length(lvls) + 1)
+        #names(valids) <- c("A", lvls)
+        #valids[["A"]] <- valid_trt_factor
+        #for (lvl in lvls) {
+        #    other <- setdiff(lvls, lvl)
+        #    
+        #    valids[[lvl]] <- data.table::copy(valid_trt_factor)
+        #    valids[[lvl]][[lvl]] <- 1
+        #    valids[[lvl]][, (other) := lapply(.SD, function(x) rep(0, length(x))), .SDcols = other]
+        #}
         
         Qs <- b(data, npsem, family, folds, learners_b, tmle = TRUE)
         
