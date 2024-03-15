@@ -10,6 +10,9 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
                             learners_vbar = "glm",
                             learners_cens = "glm") {
     require(fastDummies)
+    outcome <- Y
+    covar <- W
+    trt <- A
     npsem <- Npsem$new(A = A, W = W, Z = Z, M = M, Y = Y, cens = cens)
     folds <- make_folds(data, folds)
 
@@ -122,10 +125,7 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
         folded[[1]]$training_set <- folded[[1]]$validation_set
     }
     
-    obs <- !is.na(data[["Y"]])
-    outcome <- "Y"
-    covar <- W
-    trt <- "A"
+    obs <- !is.na(data[[outcome]])
     trt_factor <- dummy_cols(data, trt, remove_first_dummy = FALSE, remove_selected_columns = TRUE)
     lvls <- setdiff(names(trt_factor), names(data))
     
