@@ -131,10 +131,10 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
     lvls <- setdiff(names(trt_factor), names(data))
     
     for (i in 1:tmle_folds) {
-        #train <- as.data.table(data[folded[[i]]$training_set, ])
+        train <- as.data.table(data[folded[[i]]$training_set, ])
         #train_trt_factor <- as.data.table(trt_factor[folded[[i]]$training_set, ])
         #valid <- as.data.table(data[folded[[i]]$validation_set, ])
-        #valid_trt_factor <- as.data.table(trt_factor[folded[[i]]$validation_set, ])
+        valid_trt_factor <- as.data.table(trt_factor[folded[[i]]$validation_set, ])
         
         #valids <- vector("list", length(lvls) + 1)
         #names(valids) <- c("A", lvls)
