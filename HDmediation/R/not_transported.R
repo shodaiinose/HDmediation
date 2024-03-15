@@ -148,9 +148,11 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
         
         Qs <- b(data, npsem, family, folds, learners_b, tmle = TRUE)
         
-        Qs <- list(A = ifelse(trt_obs == 0, Qs[, 1], Qs[, 2]),
-                   A_0 = Qs[, 1],
-                   A_1 = Qs[, 2])
+        Qs <- list(ifelse(trt_obs == 0, Qs[, 1], Qs[, 2]),
+                   Qs[, 1],
+                   Qs[, 2])
+        
+        names(Qs) <- c("A", lvls)
         
         Qs <- lapply(Qs, function(x) pmax(pmin(x, 1 - 0.0001), 0.0001))
         
