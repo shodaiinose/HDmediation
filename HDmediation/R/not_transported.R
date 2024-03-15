@@ -10,6 +10,7 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
                             learners_vbar = "glm",
                             learners_cens = "glm") {
     require(fastDummies)
+    require(data.table)
     outcome <- Y
     covar <- W
     trt <- A
