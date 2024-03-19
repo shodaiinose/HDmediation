@@ -24,7 +24,7 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
     A <- data[[npsem$A]]
 
     gg <- g(data, npsem, folds, learners_g)
-    gg <- apply(gg, 2, function(x) pmax(pmin(x, 1 - 0.0001), 0.0001))
+    gg <- apply(gg, 2, function(x) pmax(pmin(x, 1 - 0.001), 0.001))
     Hs <- matrix(nrow = nrow(data), ncol = 3)
     ee <- e(data, npsem, folds, learners_e)
     bb <- b(data, npsem, family, folds, learners_b)
