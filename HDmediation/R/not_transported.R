@@ -8,7 +8,8 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
                             learners_ubar = "glm",
                             learners_v = "glm",
                             learners_vbar = "glm",
-                            learners_cens = "glm") {
+                            learners_cens = "glm",
+                            tmle) {
     require(fastDummies)
     require(data.table)
     outcome <- Y
@@ -23,6 +24,7 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
     A <- data[[npsem$A]]
 
     gg <- g(data, npsem, folds, learners_g)
+    gg <- apply(gg, 2, function(x) pmax(pmin(x, 1 - 0.0001), 0.0001))
     Hs <- matrix(nrow = nrow(data), ncol = 3)
     ee <- e(data, npsem, folds, learners_e)
     bb <- b(data, npsem, family, folds, learners_b)
@@ -119,6 +121,8 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
     ans$ci_direct_low <- ci_direct[1]
     ans$ci_direct_high <- ci_direct[2]
     
+    if(tmle == TRUE)
+    {
     tmle_folds <- 1
     trt_obs <- data[[npsem$A]]
     folded <- origami::make_folds(data, V = tmle_folds)
@@ -210,7 +214,7 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
     tmle_res <- list(psi = psis,
          std.error = ses,
          ic = eics,
-         g = g,
+         g = gg,
          prob_observed = prob_observed)
 
     val_list <- list(
@@ -220,4 +224,14 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
         eif00 = eifs$`00`,
         tmle_res = tmle_res
         )
+    }
+    else
+    {
+        val_list <- list(
+            results = ans,
+            eif11 = eifs$`11`, 
+            eif10 = eifs$`10`, 
+            eif00 = eifs$`00`
+            ) 
+    }
 }
