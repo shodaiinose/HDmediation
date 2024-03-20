@@ -24,7 +24,7 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
     A <- data[[npsem$A]]
 
     gg <- g(data, npsem, folds, learners_g)
-    gg <- apply(gg, 2, function(x) pmax(pmin(x, 1 - 0.001), 0.001))
+    gg <- apply(gg, 2, function(x) pmax(pmin(x, 1 - 0.0001), 0.0001))
     Hs <- matrix(nrow = nrow(data), ncol = 3)
     ee <- e(data, npsem, folds, learners_e)
     bb <- b(data, npsem, family, folds, learners_b)
@@ -175,8 +175,9 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
         Hs <- matrix(nrow = nrow(data), ncol = length(lvls) + 1)
         colnames(Hs) <- c("A", lvls)
         colnames(Gs) <- c(lvls)
+        gg2 <- ifelse(trt_obs == 0, gg[,1], gg[,2])
         for (target in lvls[2:length(lvls)]) {
-            Gs[folded[[i]]$validation_set, target] <- gg[, 2]
+            Gs[folded[[i]]$validation_set, target] <- gg2
             Hs[folded[[i]]$validation_set, target] <-
                 valid_trt_factor[[target]] / Gs[folded[[i]]$validation_set, target]
         }
