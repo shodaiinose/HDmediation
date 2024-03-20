@@ -10,11 +10,14 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
                             learners_vbar = "glm",
                             learners_cens = "glm",
                             tmle) {
+    # new code
     require(fastDummies)
     require(data.table)
     outcome <- Y
     covar <- W
     trt <- A
+    # end new code
+    
     npsem <- Npsem$new(A = A, W = W, Z = Z, M = M, Y = Y, cens = cens)
     folds <- make_folds(data, folds)
 
@@ -121,6 +124,7 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
     ans$ci_direct_low <- ci_direct[1]
     ans$ci_direct_high <- ci_direct[2]
     
+    # TMLE code
     if(tmle == TRUE)
     {
     tmle_folds <- 1
