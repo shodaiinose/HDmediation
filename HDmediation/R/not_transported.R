@@ -27,7 +27,7 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
     A <- data[[npsem$A]]
 
     gg <- g(data, npsem, folds, learners_g)
-    gg <- apply(gg, 2, function(x) pmax(pmin(x, 1 - 0.0001), 0.0001))
+    gg <- apply(gg, 2, function(x) pmax(pmin(x, 1 - 0.001), 0.001))
     Hs <- matrix(nrow = nrow(data), ncol = 3)
     ee <- e(data, npsem, folds, learners_e)
     bb <- b(data, npsem, family, folds, learners_b)
@@ -70,20 +70,20 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
 
         # EIF calculation
         eify_weight <- ipwy * hm / mean(ipwy * hm)
-        eify_weight <- ifelse(eify_weight > 100, 100, eify_weight)
+        eify_weight <- ifelse(eify_weight > 1000, 1000, eify_weight)
         
         eify <- eify_weight * (Y - bb[, gl("b({aprime},Z,M,W)")])
         # eify <- ipwy * hm * (Y - bb[, gl("b({aprime},Z,M,W)")])
         
         ipwz <- ((A == aprime) / gg[, gl("g({aprime}|w)")])*ipcw_ap
         eifz_weight <- ipwz / mean(ipwz)
-        eifz_weight <- ifelse(eifz_weight > 100, 100, eifz_weight)
+        eifz_weight <- ifelse(eifz_weight > 1000, 1000, eifz_weight)
         eifz <- eifz_weight * (uu[, 1] - uubar[, 1])
         # eifz <- ipwz  * (uu[, 1] - uubar[, 1])
         
         ipwm <- ((A == astar) / gg[, gl("g({astar}|w)")])*ipcw_as
         eifm_weight <- ipwm / mean(ipwm)
-        eifm_weight <- ifelse(eifm_weight > 100, 100, eifm_weight)
+        eifm_weight <- ifelse(eifm_weight > 1000, 1000, eifm_weight)
         eifm <- eifm_weight * (vv[, 1] - vvbar[, paste(param, collapse = "")])
         # eifm <- ipwm  * (vv[, 1] - vvbar[, paste(param, collapse = "")])
 
@@ -191,7 +191,6 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
             valid_trt_factor[[lvls[1]]] / Gs[folded[[i]]$validation_set, lvls[1]]
         
         Hs[, "A"] <- rowSums(Hs[, lvls] * as.matrix(trt_factor[, lvls]))
-        
         # calculate tmle
         Qeps <- matrix(nrow = nrow(data), ncol = length(lvls) + 1)
         colnames(Qeps) <- c("A", lvls)
