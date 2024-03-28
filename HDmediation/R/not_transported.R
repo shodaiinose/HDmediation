@@ -176,9 +176,8 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
         Hs <- matrix(nrow = nrow(data), ncol = length(lvls) + 1)
         colnames(Hs) <- c("A", lvls)
         colnames(Gs) <- c(lvls)
-        gg2 <- ifelse(trt_obs == 0, gg[,1], gg[,2])
         for (target in lvls[2:length(lvls)]) {
-            Gs[folded[[i]]$validation_set, target] <- gg2
+            Gs[folded[[i]]$validation_set, target] <- gg2[,2]
             Hs[folded[[i]]$validation_set, target] <-
                 valid_trt_factor[[target]] / Gs[folded[[i]]$validation_set, target]
         }
