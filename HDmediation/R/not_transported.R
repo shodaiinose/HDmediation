@@ -30,6 +30,7 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
     gg <- apply(gg, 2, function(x) pmax(pmin(x, 1 - 0.001), 0.001))
     Hs <- matrix(nrow = nrow(data), ncol = 3)
     ee <- e(data, npsem, folds, learners_e)
+    ee <- apply(ee, 2, function(x) pmax(pmin(x, 1 - 0.001), 0.001))
     bb <- b(data, npsem, family, folds, learners_b)
     hz <- h_z(data, npsem, folds, learners_hz)
 
