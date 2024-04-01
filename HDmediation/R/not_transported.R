@@ -178,7 +178,7 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
         colnames(Hs) <- c("A", lvls)
         colnames(Gs) <- c(lvls)
         for (target in lvls[2:length(lvls)]) {
-            Gs[folded[[i]]$validation_set, target] <- gg2[,2]
+            Gs[folded[[i]]$validation_set, target] <- gg[,2]
             Hs[folded[[i]]$validation_set, target] <-
                 valid_trt_factor[[target]] / Gs[folded[[i]]$validation_set, target]
         }
