@@ -27,10 +27,10 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
     A <- data[[npsem$A]]
 
     gg <- g(data, npsem, folds, learners_g)
-    gg <- apply(gg, 2, function(x) pmax(pmin(x, 1 - 0.001), 0.001))
+    gg <- apply(gg, 2, function(x) pmax(pmin(x, 1 - 0.0001), 0.0001))
     Hs <- matrix(nrow = nrow(data), ncol = 3)
     ee <- e(data, npsem, folds, learners_e)
-    ee <- apply(ee, 2, function(x) pmax(pmin(x, 1 - 0.001), 0.001))
+    ee <- apply(ee, 2, function(x) pmax(pmin(x, 1 - 0.0001), 0.0001))
     bb <- b(data, npsem, family, folds, learners_b)
     hz <- h_z(data, npsem, folds, learners_hz)
 
@@ -85,7 +85,8 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
         eifm <- eifm_weight * (vv[, 1] - vvbar[, paste(param, collapse = "")])
         # eifm <- ipwm  * (vv[, 1] - vvbar[, paste(param, collapse = "")])
 
-        eif <- rescale_y(eify + eifz + eifm + vvbar[, paste(param, collapse = "")], bounds$bounds)
+        #eif <- rescale_y(eify + eifz + eifm + vvbar[, paste(param, collapse = "")], bounds$bounds)
+        eif <- rescale_y(eify + eifz + eifm, bounds$bounds)
         theta <- mean(eif)
 
         thetas <- c(thetas, list(theta))
