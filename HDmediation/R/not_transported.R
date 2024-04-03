@@ -20,6 +20,7 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
     gg <- g(data, npsem, folds, learners_g)
     ee <- e(data, npsem, folds, learners_e)
     bb <- b(data, npsem, family, folds, learners_b)
+    qq <- mY(data, npsem, family, folds, learners_b)
     hz <- h_z(data, npsem, folds, learners_hz)
 
     if (!is.null(cens)) {
@@ -57,15 +58,12 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
 
         # EIF calculation
         eify <- ipwy * hm / mean(ipwy * hm) * (Y - bb[, gl("b({aprime},Z,M,W)")])
-        # eify <- ipwy * hm * (Y - bb[, gl("b({aprime},Z,M,W)")])
 
         ipwz <- ((A == aprime) / gg[, gl("g({aprime}|w)")])*ipcw_ap
         eifz <- ipwz / mean(ipwz) * (uu[, 1] - uubar[, 1])
-        # eifz <- ipwz  * (uu[, 1] - uubar[, 1])
 
         ipwm <- ((A == astar) / gg[, gl("g({astar}|w)")])*ipcw_as
         eifm <- ipwm / mean(ipwm) * (vv[, 1] - vvbar[, paste(param, collapse = "")])
-        # eifm <- ipwm  * (vv[, 1] - vvbar[, paste(param, collapse = "")])
 
         eif <- rescale_y(eify + eifz + eifm + vvbar[, paste(param, collapse = "")], bounds$bounds)
         theta <- mean(eif)
@@ -74,24 +72,34 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
         ipws <- c(ipws, list(mean(ipwy * hm / mean(ipwy * hm) * Y)))
         eifs <- c(eifs, list(eif))
     }
+    
+    mYa <- data[[npsem$A]]*qq[, "Q(1,W)"] + (1 - data[[npsem$A]])*qq[, "Q(0,W)"]
+    H_a <- (data[[npsem$A]] / gg[, "g(1|w)"]) - ((1 - data[[npsem$A]]) / gg[, "g(0|w)"])
+    eif_ate <- (data[[npsem$Y]] - mYa)*H_a + qq[, "Q(1,W)"] - qq[, "Q(0,W)"]
+    ate <- mean(eif_ate)
 
     names(eifs) <- c("11", "10", "00")
     names(thetas) <- c("11", "10", "00")
     names(ipws) <- c("11", "10", "00")
 
-    ans <- data.frame(indirect = thetas$`11` - thetas$`10`,
+    ans <- data.frame(ate = ate, 
+                      indirect = thetas$`11` - thetas$`10`,
                       direct = thetas$`10` - thetas$`00`,
                       gcomp_indirect = mean(vvbar[, "11"] - vvbar[, "10"]),
                       gcomp_direct = mean(vvbar[, "10"] - vvbar[, "00"]), 
                       ipw_indirect = ipws$`11` - ipws$`10`, 
                       ipw_direct = ipws$`10` - ipws$`00`)
 
+    ans$var_ate <- var(eif_ate)
     ans$var_indirect <- var(eifs$`11` - eifs$`10`)
     ans$var_direct <- var(eifs$`10` - eifs$`00`)
 
+    ci_ate <- ans$ate + c(-1, 1) * qnorm(0.975) * sqrt(ans$var_ate / nrow(data))
     ci_indirect <- ans$indirect + c(-1, 1) * qnorm(0.975) * sqrt(ans$var_indirect / nrow(data))
     ci_direct <- ans$direct + c(-1, 1) * qnorm(0.975) * sqrt(ans$var_direct / nrow(data))
 
+    ans$ci_ate_low <- ci_ate[1]
+    ans$ci_ate_high <- ci_ate[2]
     ans$ci_indirect_low <- ci_indirect[1]
     ans$ci_indirect_high <- ci_indirect[2]
     ans$ci_direct_low <- ci_direct[1]
