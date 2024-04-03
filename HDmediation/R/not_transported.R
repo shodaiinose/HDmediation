@@ -76,30 +76,40 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
     mYa <- data[[npsem$A]]*qq[, "Q(1,W)"] + (1 - data[[npsem$A]])*qq[, "Q(0,W)"]
     H_a <- (data[[npsem$A]] / gg[, "g(1|w)"]) - ((1 - data[[npsem$A]]) / gg[, "g(0|w)"])
     eif_ate <- (data[[npsem$Y]] - mYa)*H_a + qq[, "Q(1,W)"] - qq[, "Q(0,W)"]
-    ate <- mean(eif_ate)
 
     names(eifs) <- c("11", "10", "00")
     names(thetas) <- c("11", "10", "00")
     names(ipws) <- c("11", "10", "00")
 
-    ans <- data.frame(ate = ate, 
+    ans <- data.frame(ate = mean(eif_ate), 
+                      total = thetas$`11` - thetas$`00`,
                       indirect = thetas$`11` - thetas$`10`,
                       direct = thetas$`10` - thetas$`00`,
                       gcomp_indirect = mean(vvbar[, "11"] - vvbar[, "10"]),
                       gcomp_direct = mean(vvbar[, "10"] - vvbar[, "00"]), 
                       ipw_indirect = ipws$`11` - ipws$`10`, 
                       ipw_direct = ipws$`10` - ipws$`00`)
+    
+    eif_total <- (eifs$`11` - eifs$`00`) - ans$total
+    eif_ate <- eif_ate - ans$ate
 
     ans$var_ate <- var(eif_ate)
+    ans$var_total <- var(eif_total)
     ans$var_indirect <- var(eifs$`11` - eifs$`10`)
     ans$var_direct <- var(eifs$`10` - eifs$`00`)
+    
+    p.value <- pnorm(abs(ans$ate - ans$total) / (sqrt(var(eif_ate - eif_total) / nrow(data))), lower.tail = FALSE) * 2
+    cat("Test for difference between total effect and ATE, p-value: ", round(p.value, 4), "\n")
 
     ci_ate <- ans$ate + c(-1, 1) * qnorm(0.975) * sqrt(ans$var_ate / nrow(data))
+    ci_total <- ans$total + c(-1, 1) * qnorm(0.975) * sqrt(ans$var_total / nrow(data))
     ci_indirect <- ans$indirect + c(-1, 1) * qnorm(0.975) * sqrt(ans$var_indirect / nrow(data))
     ci_direct <- ans$direct + c(-1, 1) * qnorm(0.975) * sqrt(ans$var_direct / nrow(data))
 
     ans$ci_ate_low <- ci_ate[1]
     ans$ci_ate_high <- ci_ate[2]
+    ans$ci_total_low <- ci_total[1]
+    ans$ci_total_high <- ci_total[2]
     ans$ci_indirect_low <- ci_indirect[1]
     ans$ci_indirect_high <- ci_indirect[2]
     ans$ci_direct_low <- ci_direct[1]
