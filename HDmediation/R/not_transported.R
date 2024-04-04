@@ -115,5 +115,8 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
     ans$ci_direct_low <- ci_direct[1]
     ans$ci_direct_high <- ci_direct[2]
 
-    ans
+    eifs <- cbind(eifs$`11`, eifs$`10`, eifs$`00`)
+    results <- list(ans, cbind(eifs, eif_ate))
+    
+    results
 }
