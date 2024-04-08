@@ -20,6 +20,7 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
     gg <- g(data, npsem, folds, learners_g)
     ee <- e(data, npsem, folds, learners_e)
     bb <- b(data, npsem, family, folds, learners_b)
+    qq <- mY(data, npsem, family, folds, learners_b)
     hz <- h_z(data, npsem, folds, learners_hz)
 
     if (!is.null(cens)) {
@@ -70,39 +71,61 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
         thetas <- c(thetas, list(theta))
         eifs <- c(eifs, list(eif))
     }
+    
+    if (!is.null(cens)) {
+      obs <- data[[npsem$cens]]
+      ipcw_a1 <- obs / prob_obs[, "P(delta=1|A=1,Z,M,W)"]
+      ipcw_a0 <- obs / prob_obs[, "P(delta=1|A=0,Z,M,W)"]
+    } else {
+      ipcw_a1 <- ipcw_a0 <- 1
+    }
+    
+    Y <- ifelse(is.na(data[[npsem$Y]]), -999, data[[npsem$Y]])
+    mYa <- data[[npsem$A]]*qq[, "Q(1,W)"] + (1 - data[[npsem$A]])*qq[, "Q(0,W)"]
+    H_a <- ((data[[npsem$A]] / gg[, "g(1|w)"])*ipcw_a1) - 
+      (((1 - data[[npsem$A]]) / gg[, "g(0|w)"])*ipcw_a0)
+    eif_ate <- (Y - mYa)*H_a + qq[, "Q(1,W)"] - qq[, "Q(0,W)"]
 
     names(eifs) <- c("11", "10", "00")
     names(thetas) <- c("11", "10", "00")
 
-   ans <- data.frame(total = thetas$`11` - thetas$`00`,
+    ans <- data.frame(ate = mean(eif_ate), 
+                      total = thetas$`11` - thetas$`00`,
                       indirect = thetas$`11` - thetas$`10`,
                       direct = thetas$`10` - thetas$`00`,
                       gcomp_total = mean(vvbar[, "11"] - vvbar[, "00"]),
                       gcomp_indirect = mean(vvbar[, "11"] - vvbar[, "10"]),
                       gcomp_direct = mean(vvbar[, "10"] - vvbar[, "00"]))
     
-    eif_11 <- eifs$`11`
-    eif_10 <- eifs$`10`
-    eif_00 <- eifs$`00`
-
+    eif_total <- (eifs$`11` - eifs$`00`) - ans$total
+    eif_ate <- eif_ate - ans$ate
+    
+    ans$var_ate <- var(eif_ate)
     ans$var_total <- var(eifs$`11` - eifs$`00`)
     ans$var_indirect <- var(eifs$`11` - eifs$`10`)
     ans$var_direct <- var(eifs$`10` - eifs$`00`)
-
+    
+    p.value <- pnorm(abs(ans$ate - ans$total) / (sqrt(var(eif_ate - eif_total) / nrow(data))), lower.tail = FALSE) * 2
+    cat("Test for difference between total effect and ATE, p-value: ", round(p.value, 4), "\n")
+    
+    ci_ate <- ans$ate + c(-1, 1) * qnorm(0.975) * sqrt(ans$var_ate / nrow(data))
     ci_total <- ans$total + c(-1, 1) * qnorm(0.975) * sqrt(ans$var_total / nrow(data))
     ci_indirect <- ans$indirect + c(-1, 1) * qnorm(0.975) * sqrt(ans$var_indirect / nrow(data))
     ci_direct <- ans$direct + c(-1, 1) * qnorm(0.975) * sqrt(ans$var_direct / nrow(data))
-
+    
+    ans$ci_ate_low <- ci_ate[1]
+    ans$ci_ate_high <- ci_ate[2]
     ans$ci_total_low <- ci_total[1]
     ans$ci_total_high <- ci_total[2]
     ans$ci_indirect_low <- ci_indirect[1]
     ans$ci_indirect_high <- ci_indirect[2]
     ans$ci_direct_low <- ci_direct[1]
     ans$ci_direct_high <- ci_direct[2]
-
-    val_list <- list(
-        results = ans,
-        eif11 = eif_11, 
-        eif10 = eif_10, 
-        eif00 = eif_00)
+    
+    eifs <- cbind(eifs$`11`, eifs$`10`, eifs$`00`)
+    eif_mat <- cbind(eifs, eif_ate + ans$ate)
+    colnames(eif_mat) <- c("eif_11_uncentered", "eif_10_uncentered", "eif_00_uncentered", "eif_ate_uncentered")
+    results <- list(ans, eif_mat, p.value)
+    
+    results
 }
