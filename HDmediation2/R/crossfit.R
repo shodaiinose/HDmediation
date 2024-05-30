@@ -5,7 +5,8 @@ crossfit <- function(train, valid, y, type = c("binomial", "continuous"), id = N
                               outcome_type = match.arg(type),
                               folds = NULL,
                               newdata = valid,
-                              group = id)$preds
+                              group = id,
+                             discrete = FALSE)$preds
     lapply(preds, function(x) bound(x))
 }
 
