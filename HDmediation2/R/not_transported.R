@@ -26,6 +26,11 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
     if (!is.null(cens)) {
         prob_obs <- pObs(data, npsem, folds, learners_cens)
     }
+    
+    # probability censoring for ATE, excluding Z and M
+    if (!is.null(cens)) {
+        prob_obs_ate <- pObs_ate(data, npsem, folds, learners_cens)
+    }
 
     thetas <- eifs <- list()
     vvbar <- matrix(nrow = nrow(data), ncol = 3)
@@ -80,11 +85,25 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
       ipcw_a1 <- ipcw_a0 <- 1
     }
     
+    # probability of observation, excluding Z and M
+    if (!is.null(cens)) {
+        obs <- data[[npsem$cens]]
+        ipcw_a1_ate <- obs / prob_obs_ate[, "P(delta=1|A=1,W)"]
+        ipcw_a0_ate <- obs / prob_obs_ate[, "P(delta=1|A=0,W)"]
+    } else {
+        ipcw_a1 <- ipcw_a0 <- 1
+    }
+    
     Y <- ifelse(is.na(data[[npsem$Y]]), -999, data[[npsem$Y]])
     mYa <- data[[npsem$A]]*qq[, "Q(1,W)"] + (1 - data[[npsem$A]])*qq[, "Q(0,W)"]
     H_a <- ((data[[npsem$A]] / gg[, "g(1|w)"])*ipcw_a1) - 
       (((1 - data[[npsem$A]]) / gg[, "g(0|w)"])*ipcw_a0)
-    eif_ate <- (Y - mYa)*H_a + qq[, "Q(1,W)"] - qq[, "Q(0,W)"]
+    
+    # H_a for ATE, excluding Z and M
+    H_a_ate <- ((data[[npsem$A]] / gg[, "g(1|w)"])*ipcw_a1_ate) - 
+        (((1 - data[[npsem$A]]) / gg[, "g(0|w)"])*ipcw_a0_ate)
+    
+    eif_ate <- (Y - mYa)*H_a_ate + qq[, "Q(1,W)"] - qq[, "Q(0,W)"]
 
     names(eifs) <- c("11", "10", "00")
     names(thetas) <- c("11", "10", "00")
