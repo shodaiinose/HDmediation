@@ -75,6 +75,6 @@ calc_ate <- function(data, A, W, Y, cens = NULL, S = NULL,
     checkmate::assertDataFrame(data[, c(A, S, W, Y)])
     checkmate::assertNumber(folds, lower = 1, upper = nrow(data) - 1)
     
-    ate(data, A, W, Y, cens, family, folds, partial_tmle,
+    ate(data, A, W, Z, M, Y, cens, family, folds, partial_tmle,
                     bounds, learners_g, learners_b, learners_cens)
 }

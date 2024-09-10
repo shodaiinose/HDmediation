@@ -1,4 +1,4 @@
-ate <- function(data, A, W, Y, cens,
+ate <- function(data, A, W, Z, M, Y, cens,
                             family, folds = 1, partial_tmle, bounds,
                             learners_g = "glm",
                             learners_b = "glm",
