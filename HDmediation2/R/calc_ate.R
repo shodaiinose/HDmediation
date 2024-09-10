@@ -72,7 +72,7 @@ calc_ate <- function(data, A, W, Z, M, Y, cens = NULL, S = NULL,
                       learners_g = c("glm"),
                       learners_b = c("glm"),
                       learners_cens = "glm") {
-    checkmate::assertDataFrame(data[, c(A, S, W, Z, M Y)])
+    checkmate::assertDataFrame(data[, c(A, S, W, Z, M, Y)])
     checkmate::assertNumber(folds, lower = 1, upper = nrow(data) - 1)
     
     ate(data, A, W, Z, M, Y, cens, family, folds, partial_tmle,
