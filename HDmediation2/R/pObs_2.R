@@ -8,7 +8,7 @@ pObs_ate <- function(data, npsem, folds, learners, ...) {
         valid_1[[npsem$A]] <- 1
         valid_0[[npsem$A]] <- 0
         
-        preds <- crossfit(train[, c(npsem$cens, npsem$W, npsem$A)],
+        preds <- crossfit(train[, c(npsem$cens, npsem$W, npsem$A)], # removed Z and M
                           list(valid_0, valid_1),
                           npsem$cens,
                           "binomial",

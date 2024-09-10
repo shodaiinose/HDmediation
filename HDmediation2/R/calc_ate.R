@@ -65,30 +65,16 @@
 #' )
 #'
 #' mediation(tmp, "A", c("W0", "W1"), "Z", "M", "Y", S = "S", family = "binomial", folds = 1)
-mediation <- function(data, A, W, Z, M, Y, cens = NULL, S = NULL,
-                      family = c("binomial", "continuous"), folds = 1,
+calc_ate <- function(data, A, W, Y, cens = NULL, S = NULL,
+                      family = c("binomial", "continuous"), 
+                     folds = 1,
                       partial_tmle = TRUE, bounds = NULL,
                       learners_g = c("glm"),
-                      learners_e = c("glm"),
-                      learners_c = c("glm"),
                       learners_b = c("glm"),
-                      learners_hz = c("glm"),
-                      learners_u = c("glm"),
-                      learners_ubar = c("glm"),
-                      learners_v = c("glm"),
-                      learners_vbar = c("glm"),
                       learners_cens = "glm") {
-    checkmate::assertDataFrame(data[, c(A, S, W, Z, M, Y)])
+    checkmate::assertDataFrame(data[, c(A, S, W, Y)])
     checkmate::assertNumber(folds, lower = 1, upper = nrow(data) - 1)
-
-    if (!is.null(S)) {
-        ans <- transported(data, A, S, W, Z, M, Y, family, folds, partial_tmle,
-                           bounds, learners_g, learners_e, learners_c, learners_b,
-                           learners_hz, learners_u, learners_ubar, learners_v, learners_vbar)
-        return(ans)
-    }
     
-    not_transported(data, A, W, Z, M, Y, cens, family, folds, partial_tmle,
-                    bounds, learners_g, learners_e, learners_b,
-                    learners_hz, learners_u, learners_ubar, learners_v, learners_vbar, learners_cens)
+    ate(data, A, W, Y, cens, family, folds, partial_tmle,
+                    bounds, learners_g, learners_b, learners_cens)
 }
