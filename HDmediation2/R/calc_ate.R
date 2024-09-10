@@ -65,7 +65,7 @@
 #' )
 #'
 #' mediation(tmp, "A", c("W0", "W1"), "Z", "M", "Y", S = "S", family = "binomial", folds = 1)
-calc_ate <- function(data, A, W, Y, cens = NULL, S = NULL,
+calc_ate <- function(data, A, W, Z, M, Y, cens = NULL, S = NULL,
                       family = c("binomial", "continuous"), 
                      folds = 1,
                       partial_tmle = TRUE, bounds = NULL,
