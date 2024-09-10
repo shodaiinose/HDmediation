@@ -3,7 +3,7 @@ ate <- function(data, A, W, Z, M, Y, cens,
                             learners_g = "glm",
                             learners_b = "glm",
                             learners_cens = "glm") {
-    npsem <- Npsem$new(A = A, W = W, Y = Y, cens = cens)
+    npsem <- Npsem$new(A = A, W = W, Z, M, Y = Y, cens = cens)
     folds <- make_folds(data, folds)
     
     bounds <- scale_y(data[[npsem$Y]], family, bounds)
