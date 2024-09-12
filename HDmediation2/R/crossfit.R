@@ -13,15 +13,11 @@ bound <- function(x) {
     perc_above_099 <- mean(x > 0.99)
     perc_below_001 <- mean(x < 0.01)
     
-    if (perc_above_099 < 0.05 && perc_below_001 < 0.05) {
-        lower_bound <- 0.01
-        upper_bound <- 0.99
+    if (perc_above_099 + perc_below_001 < 0.05) {
+        p <- 1e-02
     } else {
-        lower_bound <- 0.001
-        upper_bound <- 0.999
+        p <- 1e-03
     }
     
-    x <- pmax(pmin(x, upper_bound), lower_bound)
-    
-    x
+    pmax(pmin(x, 1 - p), p)
 }
