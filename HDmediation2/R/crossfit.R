@@ -9,15 +9,6 @@ crossfit <- function(train, valid, y, type = c("binomial", "continuous"), id = N
     lapply(preds, function(x) bound(x))
 }
 
-bound <- function(x) {
-    perc_above_099 <- mean(x > 0.99)
-    perc_below_001 <- mean(x < 0.01)
-    
-    if (perc_above_099 + perc_below_001 < 0.05) {
-        p <- 1e-02
-    } else {
-        p <- 1e-03
-    }
-    
+bound <- function(x, p = 1e-03) {
     pmax(pmin(x, 1 - p), p)
 }
