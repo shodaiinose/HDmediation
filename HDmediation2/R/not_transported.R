@@ -35,6 +35,9 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
     thetas <- eifs <- list()
     vvbar <- matrix(nrow = nrow(data), ncol = 3)
     colnames(vvbar) <- c("00", "10", "11")
+
+    density_list <- list() # list to save density ratios
+  
     for (param in list(c(1, 1), c(1, 0), c(0, 0))) {
         aprime <- param[1]
         astar <- param[2]
@@ -62,7 +65,13 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
         vvbar[, paste(param, collapse = "")] <- vbar(data, npsem, vv, astar, folds, learners_vbar)
 
         # EIF calculation
-        eify <- ipwy * hm / mean(ipwy * hm) * (Y - bb[, gl("b({aprime},Z,M,W)")])
+        density <- ipwy * hm / mean(ipwy * hm) # return this
+        density_list[[paste0("aprime_", aprime, "_astar_", astar)]] <- density
+
+        density_trimmed <- ifelse(density > 100, 100, density_trimmed) # trim at 100 for now
+        density_list[[paste0("aprime_", aprime, "_astar_", astar, "trimmed")]] <- density_trimmed
+      
+        eify <- density_trimmed * (Y - bb[, gl("b({aprime},Z,M,W)")])
 
         ipwz <- ((A == aprime) / gg[, gl("g({aprime}|w)")])*ipcw_ap
         eifz <- ipwz / mean(ipwz) * (uu[, 1] - uubar[, 1])
@@ -144,7 +153,7 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
     eifs <- cbind(eifs$`11`, eifs$`10`, eifs$`00`)
     eif_mat <- cbind(eifs, eif_ate + ans$ate)
     colnames(eif_mat) <- c("eif_11_uncentered", "eif_10_uncentered", "eif_00_uncentered", "eif_ate_uncentered")
-    results <- list(ans, eif_mat, p.value)
+    results <- list(ans, eif_mat, density_list, p.value)
     
     results
 }
