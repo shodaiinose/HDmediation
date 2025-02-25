@@ -153,7 +153,7 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
     eifs <- cbind(eifs$`11`, eifs$`10`, eifs$`00`)
     eif_mat <- cbind(eifs, eif_ate + ans$ate)
     colnames(eif_mat) <- c("eif_11_uncentered", "eif_10_uncentered", "eif_00_uncentered", "eif_ate_uncentered")
-    results <- list(ans, eif_mat, density_list, p.value)
+    results <- list(ans, eif_mat, matrix(unlist(density_list), ncol = 6, byrow = TRUE), p.value)
     
     results
 }
