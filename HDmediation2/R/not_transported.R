@@ -32,11 +32,9 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
         prob_obs_ate <- pObs_ate(data, npsem, folds, learners_cens)
     }
 
-    thetas <- eifs <- list()
+    thetas <- eifs <- density_saved <- list()
     vvbar <- matrix(nrow = nrow(data), ncol = 3)
     colnames(vvbar) <- c("00", "10", "11")
-
-    density_list <- list() # list to save density ratios
   
     for (param in list(c(1, 1), c(1, 0), c(0, 0))) {
         aprime <- param[1]
@@ -66,10 +64,8 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
 
         # EIF calculation
         density <- ipwy * hm / mean(ipwy * hm) # return this
-        density_list[[paste0("aprime_", aprime, "_astar_", astar)]] <- density
 
         density_trimmed <- ifelse(density > 100, 100, density) # trim at 100 for now
-        density_list[[paste0("aprime_", aprime, "_astar_", astar, "trimmed")]] <- density_trimmed
       
         eify <- density_trimmed * (Y - bb[, gl("b({aprime},Z,M,W)")])
 
@@ -82,6 +78,7 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
         eif <- rescale_y(eify + eifz + eifm + vvbar[, paste(param, collapse = "")], bounds$bounds)
         theta <- mean(eif)
 
+        density_saved <- c(density_saved, list(density, density_trimmed))
         thetas <- c(thetas, list(theta))
         eifs <- c(eifs, list(eif))
     }
@@ -116,6 +113,7 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
 
     names(eifs) <- c("11", "10", "00")
     names(thetas) <- c("11", "10", "00")
+   names(density_saved) <- c("11", "11_trimmed", "10", "10_trimmed", "00", "00_trimmed")
 
     ans <- data.frame(ate = mean(eif_ate), 
                       total = thetas$`11` - thetas$`00`,
@@ -151,9 +149,11 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
     ans$ci_direct_high <- ci_direct[2]
     
     eifs <- cbind(eifs$`11`, eifs$`10`, eifs$`00`)
+  density_saved_mat <-  cbind(density_saved$`11`, density_saved$`11_trimmed`, density_saved$`10`, density_saved$`10_trimmed`, density_saved$`00`, density_saved$`00_trimmed`)
     eif_mat <- cbind(eifs, eif_ate + ans$ate)
     colnames(eif_mat) <- c("eif_11_uncentered", "eif_10_uncentered", "eif_00_uncentered", "eif_ate_uncentered")
-    results <- list(ans, eif_mat, matrix(unlist(density_list), ncol = 6, byrow = TRUE), p.value)
+  colnames(density_saved_mat) <- c("dr_11", "dr_11_trimmed", "dr_10", "dr_10_trimmed", "dr_00", "dr_00_trimmed")
+    results <- list(ans, eif_mat, density_saved_mat, p.value)
     
     results
 }
