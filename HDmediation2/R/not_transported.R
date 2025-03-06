@@ -65,7 +65,8 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
         # EIF calculation
         density <- ipwy * hm / mean(ipwy * hm) # return this
 
-        density_trimmed <- ifelse(density > 100, 100, density) # trim at 100 for now
+        # density_trimmed <- ifelse(density > 100, 100, density) # trim at 100 for now
+        density_trimmed <- pmin(density, quantile(density, 0.95)) # trim to the 95th percentile
       
         eify <- density_trimmed * (Y - bb[, gl("b({aprime},Z,M,W)")])
 
