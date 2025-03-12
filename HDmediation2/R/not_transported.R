@@ -53,7 +53,7 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
         ipwy <- ((A == aprime) / gg[, gl("g({aprime}|w)")])*ipcw_ap
         density <- ipwy * hm / mean(ipwy * hm) # return this
         # density_trimmed <- ifelse(density > 100, 100, density) # trim at 100 for now
-        density_trimmed <- pmin(density, quantile(density, 0.99)) # trim to the 99th percentile
+        density_trimmed <- pmin(density, quantile(density, 0.999)) # trim to the 99th percentile
         if (partial_tmle) {
             fit <- glm(Y ~ 1, offset = qlogis(bb[, gl("b({aprime},Z,M,W)")]), family = "binomial",
                        subset = A == aprime, weights = density_trimmed)
@@ -69,10 +69,14 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
         eify <- density_trimmed * (Y - bb[, gl("b({aprime},Z,M,W)")])
 
         ipwz <- ((A == aprime) / gg[, gl("g({aprime}|w)")])*ipcw_ap
-        eifz <- ipwz / mean(ipwz) * (uu[, 1] - uubar[, 1])
+        ipwz <- ipwz / mean(ipwz)                 # stabilize
+        ipwz <- pmin(ipwz, quantile(ipwz, 0.999)) # trim
+        eifz <- ipwz * (uu[, 1] - uubar[, 1])
 
         ipwm <- ((A == astar) / gg[, gl("g({astar}|w)")])*ipcw_as
-        eifm <- ipwm / mean(ipwm) * (vv[, 1] - vvbar[, paste(param, collapse = "")])
+        ipwm <- ipwm / mean(ipwm)                 # stabilize
+        ipwm <- pmin(ipwm, quantile(ipwm, 0.999))  # trim
+        eifm <- ipwm * (vv[, 1] - vvbar[, paste(param, collapse = "")])
 
         eif <- rescale_y(eify + eifz + eifm + vvbar[, paste(param, collapse = "")], bounds$bounds)
         theta <- mean(eif)
@@ -101,12 +105,18 @@ not_transported <- function(data, A, W, Z, M, Y, cens,
     
     Y <- ifelse(is.na(data[[npsem$Y]]), -999, data[[npsem$Y]])
     mYa <- data[[npsem$A]]*qq[, "Q(1,W)"] + (1 - data[[npsem$A]])*qq[, "Q(0,W)"]
-    H_a <- ((data[[npsem$A]] / gg[, "g(1|w)"])*ipcw_a1) - 
-      (((1 - data[[npsem$A]]) / gg[, "g(0|w)"])*ipcw_a0)
+    ipw_a1 <- (data[[npsem$A]] / gg[, "g(1|w)"])*ipcw_a1
+    ipw_a1 <- pmin(ipw_a1, quantile(ipw_a1, 0.999))
+    ipw_a0 <- ((1 - data[[npsem$A]]) / gg[, "g(0|w)"])*ipcw_a0
+    ipw_a0 <- pmin(ipw_a0, quantile(ipw_a0, 0.999))
+    H_a <- ipw_a1 - ipw_a0
     
     # H_a for ATE, excluding Z and M
-    H_a_ate <- ((data[[npsem$A]] / gg[, "g(1|w)"])*ipcw_a1_ate) - 
-        (((1 - data[[npsem$A]]) / gg[, "g(0|w)"])*ipcw_a0_ate)
+    ipw_a1_ate <- (data[[npsem$A]] / gg[, "g(1|w)"])*ipcw_a1_ate
+    ipw_a1_ate <- pmin(ipw_a1_ate, quantile(ipw_a1_ate, 0.999))
+    ipw_a0_ate <- ((1 - data[[npsem$A]]) / gg[, "g(0|w)"])*ipcw_a0_ate
+    ipw_a0_ate <- pmin(ipw_a0_ate, quantile(ipw_a0_ate, 0.999))
+    H_a_ate <- ipw_a1_ate - ipw_a0_ate
     
     eif_ate <- (Y - mYa)*H_a_ate + qq[, "Q(1,W)"] - qq[, "Q(0,W)"]
 
